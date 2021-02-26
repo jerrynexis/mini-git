@@ -3,83 +3,71 @@
 # Author : Jerry (tech@czekuj.net)
 # Copyright (c) czekuj.net
 
-# testing script
-
-echo "script started ..."
-
 # git visualization
+
+declare MINI_GIT
+
 function visual_git() {
 
     # variables declaration
-    local -a roots=("${HOME}/Documents/coding/rootwww" \
-                    "${HOME}/Documents/coding/rootzsh")
+    local -a roots=("${HOME}/Documents/coding/rootwww/" \
+                    "${HOME}/Documents/coding/rootzsh/")
     local gitname
     local gitbranch
     local githash
     local result
+    local nogit=$'\U2205'
 
-    # colors
-    local col_whi="\e[0;30m\e[47m"
-    local col_red="\e[0;37m\e[41m"
-    local col_yel="\e[0;30m\e[43m"
-    local col_gre="\e[0;30m\e[42m"
+    # colors echo
+    # local col_whi="\e[0;30m\e[47m"
+    # local col_red="\e[0;37m\e[41m"
+    # local col_yel="\e[0;30m\e[43m"
+    # local col_gre="\e[0;30m\e[42m"
+    # local col_r="\e[0m"
 
-    # color reset
-    local RCol='\e[0m'
-    # regular colors
-    local Bla='\e[0;30m'
-    local Red='\e[0;31m'
-    local Gre='\e[0;32m'
-    local Yel='\e[0;33m'
-    local Blu='\e[0;34m'
-    local Pur='\e[0;35m'
-    local Cya='\e[0;36m'
-    local Whi='\e[0;37m'
-    # bold colors
-    local BBla='\e[1;30m'
-    local BRed='\e[1;31m'
-    local BGre='\e[1;32m'
-    local BYel='\e[1;33m'
-    local BBlu='\e[1;34m'
-    local BPur='\e[1;35m'
-    local BCya='\e[1;36m'
-    local BWhi='\e[1;37m'
-    # background colors
-    local On_Bla='\e[40m'
-    local On_Red='\e[41m'
-    local On_Gre='\e[42m'
-    local On_Yel='\e[43m'
-    local On_Blu='\e[44m'
-    local On_Pur='\e[45m'
-    local On_Cya='\e[46m'
-    local On_Whi='\e[47m'
+    # colors prompt
+    local col_whi="%F{0}%K{7}"
+    local col_red="%{%F{7}%K{1}%}"
+    local col_yel="%F{0}%K{3}"
+    local col_gre="%F{0}%K{2}"
+    local col_r="%f%k"
 
     # testing existence of git repositories
-    gitname=$(git rev-parse --show-toplevel) 2> /dev/null
+    gitname="$(git rev-parse --show-toplevel)" 2> /dev/null
     if [ $? -eq 0 ]; then
         # assembling git status
 
+        # git repo name
         gitname="${gitname:t}"
 
+        # colored branch name
         local color_branch="${col_gre}"
         gitbranch="$(git rev-parse --abbrev-ref HEAD)" 2> /dev/null
         case ${gitbranch} in
             "production")
-                color_branch=${col_red}
+                color_branch="${col_red}"
+                ;;
+            "main")
+                color_branch="${col_red}"
                 ;;
             "master")
-                color_branch=${col_yel}
+                color_branch="${col_yel}"
                 ;;
             "HEAD")
-                color_branch=${col_whi}
+                color_branch="${col_whi}"
                 ;;
         esac
 
-        local color_hash="${col_whi}"
+        # commit hash on colored status
+        local color_hash
         githash="$(git rev-parse --short HEAD)" 2> /dev/null
-        if ! [ $? -eq 0 ]; then githash="\U2205" ; fi
+        if [ $? -eq 0 ]; then
+            color_hash="${col_red}"
+        else
+            color_hash="${col_whi}"; githash="${nogit}"
+        fi
 
-        result=" ${color_hash} ${githash} ${color_branch} ${gitbranch} ${col_whi} ${gitname} ${RCol} "
+        result=" ${color_hash} ${githash} ${color_branch} ${gitbranch} ${col_whi} ${gitname} ${col_r} "
     else
         # testing if in root dev directories
         local roots_test=-1
@@ -89,28 +77,40 @@ function visual_git() {
 
         if [ $roots_test -eq 0 ]; then
             # git missing notification
-            result=" ${Whi}${On_Red} no-GIT ${RCol} "
+            result=" ${col_red} no-GIT ${col_r} "
         else
             # git not initialized
-            result=" \U2205 "
+            result=" ${nogit} "
         fi
     fi
 
-    echo ${result}
+    MINI_GIT="${result}"
 }
-
-visual_git
 
 function test() {
 
     # gitbranch="$(git branch --show-current)"
+    # gitmore="$(git branch -vv)"
 
-    gitmore="$(git branch -vv)"
-    gitstatus="$(git status -s )"
+    gitstatus="$(git status -sb --porcelain)" 2> /dev/null
+    gitstatus_lc="$(wc -l <<< "${gitstatus}")"
+    echo $gitstatus_lc
+    gitstatus_lc_int=$(xargs <<< "$gitstatus_lc")
+    echo $gitstatus_lc_int
+    # gitstatus_lc_int=$((calc ${gitstatus_lc} * 1))
+    # echo type $gitstatus_lc_int
+    if [ $gitstatus_lc_int -eq 1 ]; then
+        echo "ONE"
+    fi
+    local -a myArray=(${(f)"${gitstatus}"})
+    for i in "${myArray[@]}"
+        do  echo "${i}"
+    done
 
+    echo $gitsts_lc
 }
 
-echo "... script ended"
+# test
 
 # setopt prompt_subst
 
